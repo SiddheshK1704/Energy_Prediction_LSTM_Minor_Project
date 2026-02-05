@@ -6,7 +6,9 @@ This project implements a **Long Short-Term Memory (LSTM) neural network** to pr
 
 The model learns temporal patterns from time-series data and forecasts future electricity demand. This helps in smart energy management, load forecasting, and efficient power utilization.
 
+
 ---
+
 
 ## 🎯 Objectives
 
@@ -16,8 +18,10 @@ The model learns temporal patterns from time-series data and forecasts future el
 - Evaluate model performance using regression metrics
 - Visualize predictions and training performance
 - Save trained model for reuse
+  
 
 ---
+
 
 ## 📊 Dataset
 
@@ -37,8 +41,10 @@ Electricity:Facility kW
 
 ### Dataset Size:
 - 8760 hourly samples (1 year)
+  
 
 ---
+
 
 ## 🧠 Model Architecture
 
@@ -52,7 +58,9 @@ LSTM networks are designed to:
 - Handle sequential data effectively
 - Reduce vanishing gradient problems
 
+
 ---
+
 
 ## ⚙️ Project Workflow
 → Data Loading
@@ -70,6 +78,7 @@ LSTM networks are designed to:
 
 ---
 
+
 ## 🧹 Data Preprocessing
 
 - Fixed invalid timestamps (`24:00:00`)
@@ -77,7 +86,9 @@ LSTM networks are designed to:
 - Sorted data chronologically
 - Selected target electricity consumption feature
 
+
 ---
+
 
 ## 📈 Exploratory Data Analysis (EDA)
 
@@ -88,7 +99,9 @@ Generated the following plots:
 - Hourly usage behavior
 - Distribution histogram of electricity consumption
 
+
 ---
+
 
 ## 🔄 Sequence Creation
 
@@ -97,7 +110,9 @@ The time-series data is converted into overlapping sequences:
 - Uses last **24 hours** to predict next hour
 - Generates 3D tensor input suitable for LSTM training
 
+
 ---
+
 
 ## 🏋️ Model Training
 
@@ -105,7 +120,9 @@ The time-series data is converted into overlapping sequences:
 - Loss Function: Mean Squared Error (MSE)
 - Early stopping used to prevent overfitting
 
+
 ---
+
 
 ## 📏 Evaluation Metrics
 
@@ -114,7 +131,9 @@ The model performance is measured using:
 - **RMSE (Root Mean Squared Error)**  
 - **MAE (Mean Absolute Error)**  
 
+
 ---
+
 
 ## 📊 Output Visualizations
 
@@ -122,7 +141,9 @@ The model performance is measured using:
 - Training vs Validation Loss Graph
 - Multiple EDA plots
 
+
 ---
+
 
 ## 💾 Saved Artifacts
 
@@ -133,7 +154,9 @@ The model performance is measured using:
 | `y_test.npy` | Actual test values |
 | `*.png` | Generated graphs |
 
+
 ---
+
 
 ## 📂 Project Structure
 ```
@@ -148,6 +171,9 @@ LSTMforEnergyPrediction/
 ├── saved_models/
 ├── predictions/
 ```
+
+---
+
 📚 Technologies Used
 
 Python
@@ -162,6 +188,9 @@ Scikit-Learn
 
 Matplotlib
 
+---
+
+
 🚀 Future Improvements
 
 Multivariate LSTM using additional energy features
@@ -174,10 +203,15 @@ Real-time dashboard integration
 
 Transformer-based time-series modeling
 
+---
+
 👨‍💻 Author
 
 Sid (Siddhesh Khankhoje)
 Computer Science Student | AI/ML Enthusiast
+
+---
+
 
 📜 License
 
