@@ -1,4 +1,4 @@
-# ⚡ LSTM-Based Energy Consumption Prediction
+# Minor Project - LSTM-Based Energy Consumption Prediction
 
 ## 📌 Project Overview
 
