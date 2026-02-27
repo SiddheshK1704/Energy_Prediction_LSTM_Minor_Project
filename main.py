@@ -11,41 +11,54 @@ from tensorflow.keras.callbacks import EarlyStopping
 
 import os
 
-#train or load the ml model
-TRAIN_MODEL = False   #kept true to train model, false to load model
+# Train model- True. Load model-False.
+TRAIN_MODEL = True
 
-#loadinf the dataset
-df = pd.read_csv("USA_GA_Albany-Dougherty.County.AP.722160_TMY3_LOW.csv")
+#Loading datasets
+files = [
+    "USA_GA_Albany-Dougherty.County.AP.722160_TMY3_LOW.csv",
+    "USA_GA_Albany-Dougherty.County.AP.722160_TMY3_BASE.csv",
+    "USA_GA_Albany-Dougherty.County.AP.722160_TMY3_HIGH.csv"
+]
 
-print("Initial shape:", df.shape)
+dfs = []
 
-#preprocessing
-df["Date/Time"] = "2025 " + df["Date/Time"]
+for i, file in enumerate(files):
+    temp_df = pd.read_csv(file)
 
-mask_24 = df["Date/Time"].str.contains("24:00:00")
+    # Assign different year to avoid timestamp overlap
+    year = 2023 + i
+    temp_df["Date/Time"] = f"{year} " + temp_df["Date/Time"]
 
-df.loc[mask_24, "Date/Time"] = (
-    df.loc[mask_24, "Date/Time"]
-    .str.replace("24:00:00", "00:00:00", regex=False)
-)
+    # Fix 24:00:00 issue
+    mask_24 = temp_df["Date/Time"].str.contains("24:00:00")
 
-df["Date/Time"] = pd.to_datetime(
-    df["Date/Time"], format="%Y %m/%d  %H:%M:%S"
-)
+    temp_df.loc[mask_24, "Date/Time"] = (
+        temp_df.loc[mask_24, "Date/Time"]
+        .str.replace("24:00:00", "00:00:00", regex=False)
+    )
 
-df.loc[mask_24, "Date/Time"] += pd.Timedelta(days=1)
+    temp_df["Date/Time"] = pd.to_datetime(
+        temp_df["Date/Time"], format="%Y %m/%d  %H:%M:%S"
+    )
 
+    temp_df.loc[mask_24, "Date/Time"] += pd.Timedelta(days=1)
+
+    dfs.append(temp_df)
+
+# Combine datasets
+df = pd.concat(dfs)
 df = df.sort_values("Date/Time").set_index("Date/Time")
 
+print("Consolidated shape:", df.shape)
 
-#target feature
+#target Feature from dataset
 target_col = "Electricity:Facility [kW](Hourly)"
 series = df[target_col]
 
+print("Null values:", series.isnull().sum())
 
-# EDA- analysis of dataset
-
-# 1️⃣ Full Time Series
+#eda plots
 plt.figure(figsize=(12,4))
 plt.plot(series)
 plt.title("Full Electricity Consumption Time Series")
@@ -54,7 +67,6 @@ plt.ylabel("Electricity Consumption (kW)")
 plt.savefig("eda_full_series.png")
 plt.close()
 
-# 2️⃣ First Week Pattern
 plt.figure(figsize=(10,4))
 plt.plot(series.iloc[:24*7])
 plt.title("First Week Consumption Pattern")
@@ -63,7 +75,6 @@ plt.ylabel("Electricity Consumption (kW)")
 plt.savefig("eda_first_week.png")
 plt.close()
 
-# 3️⃣ First 48 Hours (Hourly Pattern)
 plt.figure(figsize=(10,4))
 plt.plot(series.iloc[:48])
 plt.title("First 48 Hours Consumption Pattern")
@@ -72,33 +83,29 @@ plt.ylabel("Electricity Consumption (kW)")
 plt.savefig("eda_48_hours.png")
 plt.close()
 
-# 4️⃣ Distribution Histogram
 plt.figure(figsize=(6,4))
 plt.hist(series, bins=50)
 plt.title("Electricity Consumption Distribution")
-plt.xlabel("Time (Hours)")
-plt.ylabel("Electricity Consumption (kW)")
+plt.xlabel("Electricity Consumption (kW)")
+plt.ylabel("Frequency")
 plt.savefig("eda_distribution.png")
 plt.close()
 
-
-#train-test split
+#Train test split
 split_ratio = 0.8
 split_index = int(len(series) * split_ratio)
 
 train_series = series.iloc[:split_index]
 test_series  = series.iloc[split_index:]
 
-
-# scaling - to prevent domination of larger feature values(normalisation)
+# scaling
 scaler = MinMaxScaler()
 
 train_scaled = scaler.fit_transform(train_series.values.reshape(-1, 1))
 test_scaled  = scaler.transform(test_series.values.reshape(-1, 1))
 
-
-# sequence creation 
-TIME_STEPS = 24
+#Sequence creation
+TIME_STEPS = 168   # Weekly seasonality
 
 def create_sequences(data, time_steps):
     X, y = [], []
@@ -110,14 +117,17 @@ def create_sequences(data, time_steps):
 X_train, y_train = create_sequences(train_scaled, TIME_STEPS)
 X_test, y_test   = create_sequences(test_scaled, TIME_STEPS)
 
+print("Training shape:", X_train.shape)
+print("Testing shape:", X_test.shape)
 
-# training / loading model
+#training or loading model
 if TRAIN_MODEL or not os.path.exists("electricity_lstm_model.h5"):
 
     print("\nTraining Model...")
 
     model = Sequential([
-        LSTM(50, activation="tanh", input_shape=(TIME_STEPS, 1)),
+        LSTM(64, return_sequences=True, input_shape=(TIME_STEPS, 1)),
+        LSTM(32),
         Dense(1)
     ])
 
@@ -125,14 +135,14 @@ if TRAIN_MODEL or not os.path.exists("electricity_lstm_model.h5"):
 
     early_stop = EarlyStopping(
         monitor="val_loss",
-        patience=5,
+        patience=7,
         restore_best_weights=True
     )
 
     history = model.fit(
         X_train,
         y_train,
-        epochs=50,
+        epochs=100,
         batch_size=32,
         validation_split=0.1,
         callbacks=[early_stop],
@@ -144,37 +154,34 @@ if TRAIN_MODEL or not os.path.exists("electricity_lstm_model.h5"):
 else:
     print("\nLoading Saved Model...")
     model = load_model("electricity_lstm_model.h5", compile=False)
-
-    model.compile(
-    optimizer="adam",
-    loss="mse"
-    )
+    model.compile(optimizer="adam", loss="mse")
     history = None
 
-
-# predicting
+#Prediction
 y_pred = model.predict(X_test)
 
 y_test_inv = scaler.inverse_transform(y_test)
 y_pred_inv = scaler.inverse_transform(y_pred)
 
-
-# saving the predictions
 np.save("y_test.npy", y_test_inv)
 np.save("y_pred.npy", y_pred_inv)
 
-
-# evaluating with rmse and mae
+# Evaluation
 rmse = np.sqrt(mean_squared_error(y_test_inv, y_pred_inv))
 mae  = mean_absolute_error(y_test_inv, y_pred_inv)
+
+#mape Calculation
+epsilon = 1e-10  # small value to prevent division by zero
+mape = np.mean(
+    np.abs((y_test_inv - y_pred_inv) / (y_test_inv + epsilon))
+) 
 
 print("\nModel Evaluation:")
 print("RMSE:", rmse)
 print("MAE:", mae)
+print("MAPE:", mape, "%")
 
-
-# graph plots
-#1
+# Plots
 plt.figure(figsize=(10,5))
 plt.plot(y_test_inv, label="Actual")
 plt.plot(y_pred_inv, label="Predicted")
@@ -183,8 +190,6 @@ plt.title("Actual vs Predicted Electricity")
 plt.savefig("actual_vs_predicted.png")
 plt.close()
 
-
-#2
 if history is not None:
     plt.figure(figsize=(8,4))
     plt.plot(history.history['loss'], label='Training Loss')
@@ -194,5 +199,4 @@ if history is not None:
     plt.savefig("training_loss.png")
     plt.close()
 
-
-print("\n✅ EDA plots, predictions, and model ready.")
+print("\n✅ Model training, evaluation, and plots completed successfully.")
