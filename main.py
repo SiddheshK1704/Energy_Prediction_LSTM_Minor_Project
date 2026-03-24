@@ -12,7 +12,7 @@ from tensorflow.keras.callbacks import EarlyStopping
 import os
 
 # Train model- True. Load model-False.
-TRAIN_MODEL = True
+TRAIN_MODEL = False
 
 #Loading datasets
 files = [
@@ -200,3 +200,25 @@ if history is not None:
     plt.close()
 
 print("\n✅ Model training, evaluation, and plots completed successfully.")
+
+# pick random starting index
+start_idx = np.random.randint(0, len(series) - TIME_STEPS - 1)
+
+# slice 168 hours
+random_168 = series.values[start_idx : start_idx + TIME_STEPS]
+
+# actual next value
+actual_next = series.values[start_idx + TIME_STEPS]
+
+# scale
+random_scaled = scaler.transform(random_168.reshape(-1, 1))
+random_scaled = random_scaled.reshape(1, TIME_STEPS, 1)
+
+# predict
+pred_scaled = model.predict(random_scaled)
+pred = scaler.inverse_transform(pred_scaled)
+
+print("\n📊 RANDOM WINDOW PREDICTION")
+print(f"Start Index: {start_idx}")
+print(f"Predicted: {pred[0][0]:.2f} kW")
+print(f"Actual   : {actual_next:.2f} kW")
