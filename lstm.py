@@ -257,3 +257,54 @@ print("\n📊 RANDOM WINDOW PREDICTION")
 print(f"Start Index: {start_idx}")
 print(f"Predicted: {pred[0][0]:.2f} kW")
 print(f"Actual   : {actual_next:.2f} kW")
+
+#24 hour forecast(sequence of 168 hours to predict next 24 hours)
+future_steps = 24
+
+# pick random starting point
+start_idx = np.random.randint(0, len(series) - TIME_STEPS - future_steps)
+
+# get 168-hour input
+input_seq = series.values[start_idx : start_idx + TIME_STEPS]
+
+# actual future values (ground truth)
+actual_future = series.values[start_idx + TIME_STEPS : start_idx + TIME_STEPS + future_steps]
+
+# scale input
+input_scaled = scaler.transform(input_seq.reshape(-1, 1))
+
+predictions = []
+
+for _ in range(future_steps):
+    # reshape
+    input_reshaped = input_scaled.reshape(1, TIME_STEPS, 1)
+
+    # predict next step
+    pred_scaled = model.predict(input_reshaped, verbose=0)
+
+    # store
+    predictions.append(pred_scaled[0][0])
+
+    # update window
+    input_scaled = np.append(input_scaled[1:], pred_scaled, axis=0)
+
+# inverse transform
+predictions = scaler.inverse_transform(np.array(predictions).reshape(-1, 1))
+
+print("\n RANDOM WINDOW 24-HOUR FORECAST")
+
+for i in range(future_steps):
+    print(f"Hour {i+1}: Predicted = {predictions[i][0]:.2f} kW | Actual = {actual_future[i]:.2f} kW")
+
+    plt.figure(figsize=(10,4))
+
+plt.plot(actual_future, label="Actual", marker='o')
+plt.plot(predictions, label="Predicted", marker='x')
+
+plt.title("Random Window: Next 24 Hours Forecast")
+plt.xlabel("Hour Ahead")
+plt.ylabel("Electricity Consumption (kW)")
+plt.legend()
+
+plt.savefig("random_24hr_forecast.png")
+plt.close()
