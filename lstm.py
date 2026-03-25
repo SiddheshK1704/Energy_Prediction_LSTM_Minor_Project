@@ -174,6 +174,27 @@ y_pred = model.predict(X_test)
 y_test_inv = scaler.inverse_transform(y_test)
 y_pred_inv = scaler.inverse_transform(y_pred)
 
+from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+import numpy as np
+
+# MSE
+mse = mean_squared_error(y_test_inv, y_pred_inv)
+
+# RMSE
+rmse = np.sqrt(mse)
+
+# MAE
+mae = mean_absolute_error(y_test_inv, y_pred_inv)
+
+# R² Score
+r2 = r2_score(y_test_inv, y_pred_inv)
+
+print("\n📊 LSTM Evaluation Metrics:")
+print(f"MSE : {mse:.4f}")
+print(f"RMSE: {rmse:.4f}")
+print(f"MAE : {mae:.4f}")
+print(f"R²  : {r2:.4f}")
+
 # np.save("y_test.npy", y_test_inv)
 # np.save("y_pred.npy", y_pred_inv)
 
