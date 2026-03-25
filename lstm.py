@@ -163,8 +163,11 @@ y_pred = model.predict(X_test)
 y_test_inv = scaler.inverse_transform(y_test)
 y_pred_inv = scaler.inverse_transform(y_pred)
 
-np.save("y_test.npy", y_test_inv)
-np.save("y_pred.npy", y_pred_inv)
+# np.save("y_test.npy", y_test_inv)
+# np.save("y_pred.npy", y_pred_inv)
+
+np.save("lstm_pred.npy", y_pred_inv)
+np.save("lstm_test.npy", y_test_inv)
 
 # Evaluation
 rmse = np.sqrt(mean_squared_error(y_test_inv, y_pred_inv))
