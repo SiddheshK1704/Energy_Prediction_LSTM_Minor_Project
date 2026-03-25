@@ -91,6 +91,17 @@ plt.ylabel("Frequency")
 plt.savefig("eda_distribution.png")
 plt.close()
 
+plt.figure(figsize=(10,4))
+
+plt.hist(series, bins=50)
+
+plt.title("Distribution of Electricity Consumption")
+plt.xlabel("Electricity Consumption (kW)")
+plt.ylabel("Frequency")
+
+plt.savefig("hist.png")
+plt.close()
+
 #Train test split
 split_ratio = 0.8
 split_index = int(len(series) * split_ratio)
