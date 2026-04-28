@@ -26,7 +26,7 @@ dfs = []
 for i, file in enumerate(files):
     temp_df = pd.read_csv(file)
 
-    # Assign different year to avoid timestamp overlap
+    # Assigning different year to avoid timestamp overlap
     year = 2023 + i
     temp_df["Date/Time"] = f"{year} " + temp_df["Date/Time"]
 
