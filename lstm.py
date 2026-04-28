@@ -189,7 +189,7 @@ mae = mean_absolute_error(y_test_inv, y_pred_inv)
 # R² Score
 r2 = r2_score(y_test_inv, y_pred_inv)
 
-print("\n📊 LSTM Evaluation Metrics:")
+print("\n LSTM Evaluation Metrics:")
 print(f"MSE : {mse:.4f}")
 print(f"RMSE: {rmse:.4f}")
 print(f"MAE : {mae:.4f}")
@@ -211,10 +211,10 @@ mape = np.mean(
     np.abs((y_test_inv - y_pred_inv) / (y_test_inv + epsilon))
 ) 
 
-print("\nModel Evaluation:")
-print("RMSE:", rmse)
-print("MAE:", mae)
-print("MAPE:", mape, "%")
+# print("\nModel Evaluation:")
+# print("RMSE:", rmse)
+# print("MAE:", mae)
+# print("MAPE:", mape, "%")
 
 # Plots
 plt.figure(figsize=(10,5))
@@ -253,7 +253,7 @@ random_scaled = random_scaled.reshape(1, TIME_STEPS, 1)
 pred_scaled = model.predict(random_scaled)
 pred = scaler.inverse_transform(pred_scaled)
 
-print("\n📊 RANDOM WINDOW PREDICTION")
+print("\n RANDOM WINDOW PREDICTION")
 print(f"Start Index: {start_idx}")
 print(f"Predicted: {pred[0][0]:.2f} kW")
 print(f"Actual   : {actual_next:.2f} kW")
